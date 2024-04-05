@@ -1,0 +1,12 @@
+<form action="{{ url_for("redirect_login") }}" method="post">
+    <label for="public-key">Public key:</label>
+    <input type="text" id="public-key" name="public-key">
+
+    <label for="private-key">Private key:</label>
+    <input type="text" id="private-key" name="private-key">
+
+    <label for="uri">URI:</label>
+    <input type="text" id="uri" name="uri">
+
+    <button type="submit">Submit</button>
+</form>
