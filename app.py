@@ -18,9 +18,8 @@ app = Flask(__name__)
 
 
 def _generate_signature(url, timestamp, public_key, private_key):
-    uri = url.replace("https://", "").replace("http://", "")
     uri = urllib.parse.quote(
-        uri, safe=""
+        url, safe=""
     ).lower()  # URL encode first and lower() after encode
 
     data = f"{uri}&publicKey={public_key}&timeStamp={timestamp}"
@@ -48,7 +47,6 @@ def redirect_login():
     timestamp = (
         datetime.now(timezone.utc)
         .isoformat()
-        .replace("+00:00", "Z")  # UTC time in ISO8601
     )
     signature = _generate_signature(uri, timestamp, public_key, private_key)
     return f'timestamp: {timestamp}, signature: {signature}'
