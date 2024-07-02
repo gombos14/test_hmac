@@ -2,8 +2,6 @@ from flask import Flask, render_template, request
 import binascii
 import hashlib
 import hmac
-import urllib.parse
-import urllib.request
 from datetime import datetime, timezone
 
 app = Flask(__name__)
@@ -17,12 +15,14 @@ app = Flask(__name__)
 # uri = 'https://acc.incentives.asr.nl/api/Vitality/SingleSignOn/roi/fehowf/krisztian/'
 
 
-def _generate_signature(url, timestamp, public_key, private_key):
-    uri = urllib.parse.quote(
-        url, safe=""
-    ).lower()  # URL encode first and lower() after encode
+def _generate_signature(url, timestamp, public_key, private_key, common_auth_id):
+    if not url.endswith('/'):
+        url += '/'
 
-    data = f"{uri}&publicKey={public_key}&timeStamp={timestamp}"
+    if common_auth_id:
+        url += '%s/' % common_auth_id
+
+    data = f"{url}&publicKey={public_key}&timeStamp={timestamp}"
 
     key = binascii.unhexlify(private_key)
     signature = hmac.new(key, data.encode(), hashlib.sha256).hexdigest().upper()
@@ -40,15 +40,17 @@ def redirect_login():
     public_key = request.form['public-key']
     private_key = request.form['private-key']
     uri = request.form['uri']
+    common_auth_id = request.form['common-auth-id']
 
     if not all([public_key, private_key, uri]):
         raise RuntimeError('Please provide data')
 
     timestamp = (
         datetime.now(timezone.utc)
-        .isoformat()
+        .isoformat("T", "seconds")
+        .replace("+00:00", "")
     )
-    signature = _generate_signature(uri, timestamp, public_key, private_key)
+    signature = _generate_signature(uri, timestamp, public_key, private_key, common_auth_id)
     return f'timestamp: {timestamp}, signature: {signature}'
 
 
